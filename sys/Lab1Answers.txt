@@ -1,0 +1,38 @@
+1. What are the advantages and disadvantages of each of the two scheduling policies? Also, give the advantages and disadvantages of the round robin scheduling policy originally implemented in Xinu.
+----------------------------------------------------------------------------------------------------
+The default XINU scheduler will check if the current running process has the highest priority, and will keep running it, resulting in CPU starvation of the processes which have lower priority.
+
+Advantage of Exponential Distribution Scheduler:
+- The scheduler solves the problem of CPU starvation of lower priority process.
+- Exponential distribution is not much complicated to implement, while still accomplishing the scheduling of all the processes.
+
+Disadvantage of Exponential Distribution Scheduler:
+- If the value of LAMDA is not selected properly, the higher priorities might not even get selected as in the distributions, the probability of higher priorities is low.
+- The execution of process is non-deterministic, i.e. it is unknown which process will get picked up next.
+
+Advantage of Linux-like Scheduler:
+- This is a deterministic scheduling.
+- Each of the high priority processes get higher amount of execution time so that they can do more work in each epoch.
+- Despite of the low priority, there is no CPU starvation of process, as in each epoch, all the processes are allowed to run.
+
+Disadvantage of Linux-like Scheduler:
+- As the process of lower priority scheduled at last in each epoch, the response time for low priority process is still not very good. 
+
+Advantage of round robin:
+- The processes with equal priorities get equal execution time, alternating one at a time.
+
+Disadvantage of round robin:
+- The default round robin scheduler will check if the current running process has the highest priority, and will keep running it, resulting in CPU starvation of the processes which have lower priority.
+
+====================================================================================================
+
+2. Describe the way each of the schedulers affects the NULL process.
+----------------------------------------------------------------------------------------------------
+Exponential Distribution Scheduler:
+To pick a process, Exponential Distribution Scheduler uses expdev_process() function in sched.c. The function starts tracing the ready queue for its tail, goes till the head of ready queue is encountered, to find a process whose priority is higher than the random value. As the minimum random value is 0, any process higher than that would be selected. NULLPROC, being at priority 0, is not selected as 0 is not greater than 0.
+
+Linux-like Scheduler:
+The amount of time which a process is allowed to run is initially equal to priority of the process, and then in new epoch, it is equal to priority added with half of the remaining quantum from previous epoch. Only the processes with counter greater than 0 are selected to be run. As NULLPROC has priority 0, its counter (allowed quantum to run) never goes above 0. Thus, NULLPROC is not run during the scheduling.
+
+Round Robin Scheduler:
+The default round robin scheduler checks the state of process in proctable, along with priority of tail of ready queue. If the state is running, i.e. PCURR and tail's priority is less than the running process' priority, it will do nothing. While only main and NULLPROC exist, and main is not yet pushed back to the ready queue (pstate is PCURR), only NULLPROC is in the ready queue. The RR scheduler will check and find the NULLPROC's priority is less than main, and will do nothing. Thus, NULLPROC is not selected in RR scheduler.
